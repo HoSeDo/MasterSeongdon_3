@@ -163,54 +163,38 @@ void AMasterProject21Character::OnShoot(const FInputActionValue& Value)
 		TargetPoint = TraceEnd;
 	}
 
-	// 2 : 발사위치 정하기
 	// "LeftElbowSocket" 으로 팔꿈치에서 발사하도록 소켓 Add Socket 블루프린터 추가
 	FVector MuzzleLocation = GetMesh()->GetSocketLocation(FName("LeftElbowSocket"));
 
 	FVector FireDirBase = (TargetPoint - MuzzleLocation).GetSafeNormal();
 
-	// --- 3단계: 샷건 발사
 	for (int32 i = 0; i < PelletCount; i++)
 	{
-		// 계산된 방향에 탄퍼짐 적용
 		FVector FireDir = FMath::VRandCone(FireDirBase, FMath::DegreesToRadians(SpreadAngle));
 		FVector PelletEnd = MuzzleLocation + (FireDir * ShotRange);
 
 		FHitResult PelletHit;
 		if (GetWorld()->LineTraceSingleByChannel(PelletHit, MuzzleLocation, PelletEnd, ECC_Visibility, QueryParams))
 		{
-			// 팔꿈치에서 충격 지점까지 라인 그리기
 			DrawDebugLine(GetWorld(), MuzzleLocation, PelletHit.ImpactPoint, FColor::Red, false, 2.0f, 0, 1.0f);
-
 			UGameplayStatics::ApplyPointDamage(PelletHit.GetActor(), 10.f, FireDir, PelletHit, PC, this, nullptr);
 		}
 		else
 		{
-			// 아무것도 안 맞았을 때 사거리 끝까지 라인 그리기
 			DrawDebugLine(GetWorld(), MuzzleLocation, PelletEnd, FColor::Red, false, 2.0f, 0, 1.0f);
 		}
 	}
-
-	// 1. 목표 고점 높이기 (확 튀어 오를 지점)
 	TargetRecoilPitch += RecoilKickAmount;
-
-	// 2. 복구 지점(원점)도 조금씩 높이기 (반동이 쌓이는 효과)
-	// RecoilKickAmount의 40%(1 - RecoveryRate)만큼은 바닥으로 안 내려가게 막음
 	PermanentRecoilOffset += RecoilKickAmount * (1.0f - RecoveryRate);
 }
 
 void AMasterProject21Character::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	// 1. 목표치(Target)를 복구 지점(PermanentOffset)으로 서서히 내림
-	// 이제 0으로 가는 게 아니라, 쌓인 오프셋까지만 내려갑니다.
 	TargetRecoilPitch = FMath::FInterpTo(TargetRecoilPitch, PermanentRecoilOffset, DeltaTime, RecoilReturnSpeed);
 
-	// 2. 현재 반동값을 목표치로 추적 (SnapSpeed를 높여서 팍! 튀게 만듦)
 	float PrevRecoil = CurrentRecoilPitch;
 	CurrentRecoilPitch = FMath::FInterpTo(CurrentRecoilPitch, TargetRecoilPitch, DeltaTime, RecoilSnapSpeed);
 
-	// 3. 차이만큼 적용
 	AddControllerPitchInput(CurrentRecoilPitch - PrevRecoil);
 }

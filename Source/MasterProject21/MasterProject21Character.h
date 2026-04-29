@@ -44,11 +44,9 @@ class AMasterProject21Character : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
 
-	/** 발사 시 사용할 입력 액션 (에디터에서 할당) */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* ShootAction;
 
-	/** 샷건 설정값 */
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 	float ShotRange = 2000.f;
 
@@ -58,9 +56,8 @@ class AMasterProject21Character : public ACharacter
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 	float SpreadAngle = 5.0f;
 
-	/** 반동 설정값 */
 	UPROPERTY(EditAnywhere, Category = "Weapon")
-	float RecoilPitch = -1.0f; // 위로 튀는 정도
+	float RecoilPitch = -1.0f; 
 
 public:
 	AMasterProject21Character();
@@ -88,23 +85,23 @@ protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 			
 private:
-	// --- 샷건 반동 강화 설정 ---
-	UPROPERTY(EditAnywhere, Category = "Weapon|Recoil")
-	float RecoilKickAmount = -5.0f;    // 한 번 쏠 때 확 튀는 양 (더 크게!)
 
 	UPROPERTY(EditAnywhere, Category = "Weapon|Recoil")
-	float RecoilSnapSpeed = 30.0f;    // 총구가 위로 튀는 속도 (엄청 빠르게!)
+	float RecoilKickAmount = -5.0f;   
 
 	UPROPERTY(EditAnywhere, Category = "Weapon|Recoil")
-	float RecoilReturnSpeed = 5.0f;   // 돌아오는 속도 (천천히)
+	float RecoilSnapSpeed = 30.0f;    
+
+	UPROPERTY(EditAnywhere, Category = "Weapon|Recoil")
+	float RecoilReturnSpeed = 5.0f;   
 
 	UPROPERTY(EditAnywhere, Category = "Weapon|Recoil", meta = (ClampMin = "0.0", ClampMax = "1.0"))
-	float RecoveryRate = 0.6f;        // 0.6이면 60%만 복구되고 40%는 화면에 남음
+	float RecoveryRate = 0.6f;        
 
 	// --- 내부 계산 변수 ---
-	float TargetRecoilPitch = 0.0f;   // 도달해야 할 고점
-	float CurrentRecoilPitch = 0.0f;  // 현재 적용된 반동
-	float PermanentRecoilOffset = 0.0f; // 복구된 후 머무를 지점 (계속 쌓임)
+	float TargetRecoilPitch = 0.0f;  
+	float CurrentRecoilPitch = 0.0f;  
+	float PermanentRecoilOffset = 0.0f;
 
 };
 
