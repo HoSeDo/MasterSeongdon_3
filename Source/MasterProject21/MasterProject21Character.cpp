@@ -91,12 +91,6 @@ void AMasterProject21Character::SetupPlayerInputComponent(UInputComponent* Playe
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMasterProject21Character::Look);
 
-		// Shooting
-		EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Started, this, &AMasterProject21Character::OnShoot);
-	}
-	else
-	{
-		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
 	}
 }
 
@@ -134,58 +128,6 @@ void AMasterProject21Character::Look(const FInputActionValue& Value)
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
-}
-
-void AMasterProject21Character::OnShoot(const FInputActionValue& Value)
-{
-	APlayerController* PC = Cast<APlayerController>(GetController());
-	if (!PC || !GetMesh()) return;
-
-	FVector CameraLocation;
-	FRotator CameraRotation;
-	PC->GetPlayerViewPoint(CameraLocation, CameraRotation);
-
-	FVector TraceStart = CameraLocation;
-	FVector TraceEnd = TraceStart + (CameraRotation.Vector() * ShotRange);
-
-	FHitResult TargetHit;
-	FCollisionQueryParams QueryParams;
-	QueryParams.AddIgnoredActor(this);
-
-	FVector TargetPoint;
-
-	if (GetWorld()->LineTraceSingleByChannel(TargetHit, TraceStart, TraceEnd, ECC_Visibility, QueryParams))
-	{
-		TargetPoint = TargetHit.ImpactPoint;
-	}
-	else
-	{
-		TargetPoint = TraceEnd;
-	}
-
-	// "LeftElbowSocket" 으로 팔꿈치에서 발사하도록 소켓 Add Socket 블루프린터 추가
-	FVector MuzzleLocation = GetMesh()->GetSocketLocation(FName("LeftElbowSocket"));
-
-	FVector FireDirBase = (TargetPoint - MuzzleLocation).GetSafeNormal();
-
-	for (int32 i = 0; i < PelletCount; i++)
-	{
-		FVector FireDir = FMath::VRandCone(FireDirBase, FMath::DegreesToRadians(SpreadAngle));
-		FVector PelletEnd = MuzzleLocation + (FireDir * ShotRange);
-
-		FHitResult PelletHit;
-		if (GetWorld()->LineTraceSingleByChannel(PelletHit, MuzzleLocation, PelletEnd, ECC_Visibility, QueryParams))
-		{
-			DrawDebugLine(GetWorld(), MuzzleLocation, PelletHit.ImpactPoint, FColor::Red, false, 2.0f, 0, 1.0f);
-			UGameplayStatics::ApplyPointDamage(PelletHit.GetActor(), 10.f, FireDir, PelletHit, PC, this, nullptr);
-		}
-		else
-		{
-			DrawDebugLine(GetWorld(), MuzzleLocation, PelletEnd, FColor::Red, false, 2.0f, 0, 1.0f);
-		}
-	}
-	TargetRecoilPitch += RecoilKickAmount;
-	PermanentRecoilOffset += RecoilKickAmount * (1.0f - RecoveryRate);
 }
 
 void AMasterProject21Character::Tick(float DeltaTime)
